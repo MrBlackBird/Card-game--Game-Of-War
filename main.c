@@ -5,8 +5,8 @@
 
 // war card game
 
-#define DEALT 1
 #define NOT_DEALT 0
+#define DEALT 1
 #define EMPTY 2
 
 typedef struct{
@@ -15,6 +15,8 @@ typedef struct{
     int state;      // 0 -> not dealt, 1 -> dealt
 } Card;
 
+#define EMPTY_CARD (Card){ .suit = "empty", .value = 0, .state = EMPTY }
+
 typedef struct{
     int current_number_of_cards;
     Card cards[52];
@@ -22,7 +24,7 @@ typedef struct{
 
 typedef struct{
     int num_of_cards;
-    Card cards[];
+    Card cards_played[];       // ADD DYNAMIC MEMORY ALLOCATION FOR THE CARDS PLAYED IN A TURN
 } Table;
 
 void populate_cards_in_deck(Deck *deck);
@@ -31,7 +33,7 @@ void shuffle_deck(Deck *deck);
 
 void split_deck(Deck *deck, Deck *deck_player, Deck *deck_bot);
 
-void play_card(Deck *deck);
+void play_card(Deck *deck);     // ADD TABLE TO ENABLE STORAGE FOR CARDS IN EACH PLAY
 
 void print_deck(Deck *deck);
 
@@ -39,7 +41,6 @@ void print_deck(Deck *deck);
 int main(){
     Deck deck;  // the initial deck
     Deck deck_player, deck_bot;
-
 
     // seed random generator for shuffling
     srand(time(NULL));
@@ -54,9 +55,9 @@ int main(){
     split_deck(&deck, &deck_player, &deck_bot);
 
     // for testing
-    //print_deck(&deck);
-    //print_deck(&deck_player);
-    //print_deck(&deck_bot);
+    print_deck(&deck);
+    print_deck(&deck_player);
+    print_deck(&deck_bot);
 
     
     // GAME LOOP
@@ -145,13 +146,8 @@ void shuffle_deck(Deck *deck){
 void split_deck(Deck *deck, Deck *deck_player, Deck *deck_bot){
     // don't allow empty cells in each player's deck
     for(int i = 0; i < 52; i++){
-        deck_player->cards[i].value = 0;
-        strcpy(deck_player->cards[i].suit, "empty");
-        deck_player->cards[i].state = EMPTY;
-
-        deck_bot->cards[i].value = 0;
-        strcpy(deck_bot->cards[i].suit, "empty");
-        deck_bot->cards[i].state = EMPTY;
+        deck_player->cards[i] = EMPTY_CARD;
+        deck_bot->cards[i] = EMPTY_CARD;
     }
     
     // add coresponding cards to players
