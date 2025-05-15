@@ -3,29 +3,47 @@
 #include <string.h>
 #include <time.h>
 
-// war card game
+// card game - game of war
 
+// define card states
 #define NOT_DEALT 0
 #define DEALT 1
 #define EMPTY 2
 
+// define deck parameters
+#define DECK_SIZE 52
+
 typedef struct{
     char suit[10];
     int value;
-    int state;      // 0 -> not dealt, 1 -> dealt
+    int state;      // 0 -> not dealt, 1 -> dealt, 2 -> empty
 } Card;
 
 #define EMPTY_CARD (Card){ .suit = "empty", .value = 0, .state = EMPTY }
 
 typedef struct{
     int current_number_of_cards;
-    Card cards[52];
+    Card cards[DECK_SIZE];
 } Deck;
 
 typedef struct{
     int num_of_cards;
-    Card cards_played[];       // ADD DYNAMIC MEMORY ALLOCATION FOR THE CARDS PLAYED IN A TURN
+    Card cards_played[];       // TODO ADD DYNAMIC MEMORY ALLOCATION FOR THE CARDS PLAYED IN A TURN
 } Table;
+
+Table* dynamic_cards_arr(int number_of_cards){
+    Table* table = malloc(sizeof(Table) + (sizeof(Card) * number_of_cards));
+    if(table == NULL){
+        fprintf(stderr, "Failed to allocate memory for array\n");
+        return NULL;
+    }
+    table->num_of_cards = number_of_cards;
+    return table;
+}
+
+void free_table(Table* table){
+    free(table);
+}
 
 void populate_cards_in_deck(Deck *deck);
 
@@ -33,7 +51,7 @@ void shuffle_deck(Deck *deck);
 
 void split_deck(Deck *deck, Deck *deck_player, Deck *deck_bot);
 
-void play_card(Deck *deck);     // ADD TABLE TO ENABLE STORAGE FOR CARDS IN EACH PLAY
+void play_card(Deck *deck, Table** table);     // TODO ADD TABLE TO ENABLE STORAGE FOR CARDS IN EACH PLAY
 
 void print_deck(Deck *deck);
 
@@ -41,6 +59,13 @@ void print_deck(Deck *deck);
 int main(){
     Deck deck;  // the initial deck
     Deck deck_player, deck_bot;
+
+    int initial_cards_played = 2;
+    Table *table = dynamic_cards_arr(initial_cards_played);
+    if(table == NULL){
+        fprintf(stderr, "Failed to create array in main\n");
+        return 1;
+    }
 
     // seed random generator for shuffling
     srand(time(NULL));
@@ -56,8 +81,8 @@ int main(){
 
     // for testing
     print_deck(&deck);
-    print_deck(&deck_player);
-    print_deck(&deck_bot);
+    //print_deck(&deck_player);
+    //print_deck(&deck_bot);
 
     
     // GAME LOOP
@@ -68,30 +93,13 @@ int main(){
 
 
 void populate_cards_in_deck(Deck *deck){
-    int hearts = 13;            // splits cards into correct suits
-    int hearts_offset = 1;      // append the shifted value as card value
-    int spades = 26;
-    int spades_offset = 12;
-    int diamonds = 39;
-    int diamonds_offset = 25;
-    int clubs_offset = 38;
 
-    for(int i = 0; i < 52; i++){
-        if(i < hearts){
-            strcpy(deck->cards[i].suit, "hearts");
-            deck->cards[i].value = i + hearts_offset;
-        }
-        else if(i < spades){
-            strcpy(deck->cards[i].suit, "spades");
-            deck->cards[i].value = i - spades_offset;
-        }
-        else if(i < diamonds){
-            strcpy(deck->cards[i].suit, "diamonds");
-            deck->cards[i].value = i - diamonds_offset;
-        } else {
-            strcpy(deck->cards[i].suit, "clubs");
-            deck->cards[i].value = i - clubs_offset;
-        }
+    int card_values = 13;
+    const char* suits[] = {"hearts", "spades", "diamonds", "clubs"};
+    for (int i = 0; i < DECK_SIZE; i++) {
+        strcpy(deck->cards[i].suit, suits[i / card_values]);
+        deck->cards[i].value = (i % card_values) + 1; // 1-13
+        deck->cards[i].state = NOT_DEALT;
     }
 
     // account for special card values: 1->A, 11->J, 12->Q, 13->K
@@ -100,7 +108,7 @@ void populate_cards_in_deck(Deck *deck){
     int ascii_Q = 81;
     int ascii_K = 75;
 
-    for(int i = 0; i < 52; i++){
+    for(int i = 0; i < DECK_SIZE; i++){
         if(deck->cards[i].value == 1){
             // set A
             deck->cards[i].value = ascii_A;
@@ -151,19 +159,19 @@ void split_deck(Deck *deck, Deck *deck_player, Deck *deck_bot){
     }
     
     // add coresponding cards to players
-    const int split_offset = 26;
-    for(int j = 0; j < 26; j++){
+    const int split_offset = DECK_SIZE / 2;
+    for(int j = 0; j < (DECK_SIZE / 2); j++){
         deck_player->cards[j] = deck->cards[j];
         deck_bot->cards[j] = deck->cards[j + split_offset];
     }
 }
 
-void play_card(Deck *deck){}
+void play_card(Deck *deck, Table** table){}
 
 
 // for testing
 void print_deck(Deck *deck){
-    for(int i = 0; i < 52; i++){
+    for(int i = 0; i < DECK_SIZE; i++){
         if(deck->cards[i].value < 11){
             printf("Card %d value/suit: %d / %s\n", i + 1, deck->cards[i].value, deck->cards[i].suit);
         } else {
