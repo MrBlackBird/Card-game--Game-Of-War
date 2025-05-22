@@ -15,8 +15,9 @@
 
 typedef struct{
     char suit[10];
-    int value;
-    int state;      // 0 -> not dealt, 1 -> dealt, 2 -> empty
+    int value;          // stores the card's value: A, 2, 3, ...
+    int actual_value;   // stores the card's actual value: 1, 2, 3, ...
+    int state;          // 0 -> not dealt, 1 -> dealt, 2 -> empty
 } Card;
 
 #define EMPTY_CARD (Card){ .suit = "empty", .value = 0, .state = EMPTY }
@@ -28,7 +29,7 @@ typedef struct{
 
 typedef struct{
     int num_of_cards;
-    Card cards_played[];       // TODO ADD DYNAMIC MEMORY ALLOCATION FOR THE CARDS PLAYED IN A TURN
+    Card cards_played[];
 } Table;
 
 Table* dynamic_cards_arr(int number_of_cards){
@@ -74,10 +75,10 @@ int main(){
     populate_cards_in_deck(&deck);
 
     // shuffle deck
-    shuffle_deck(&deck);
+    //shuffle_deck(&deck);
 
     // split deck between players
-    split_deck(&deck, &deck_player, &deck_bot);
+    //split_deck(&deck, &deck_player, &deck_bot);
 
     // for testing
     print_deck(&deck);
@@ -99,6 +100,7 @@ void populate_cards_in_deck(Deck *deck){
     for (int i = 0; i < DECK_SIZE; i++) {
         strcpy(deck->cards[i].suit, suits[i / card_values]);
         deck->cards[i].value = (i % card_values) + 1; // 1-13
+        deck->cards[i].actual_value = (i % card_values) + 1;
         deck->cards[i].state = NOT_DEALT;
     }
 
@@ -172,10 +174,10 @@ void play_card(Deck *deck, Table** table){}
 // for testing
 void print_deck(Deck *deck){
     for(int i = 0; i < DECK_SIZE; i++){
-        if(deck->cards[i].value < 11){
-            printf("Card %d value/suit: %d / %s\n", i + 1, deck->cards[i].value, deck->cards[i].suit);
+        if(deck->cards[i].actual_value < 11 && !(deck->cards[i].actual_value == 1)){
+            printf("Card %d actual-value/value/suit: %d / %d / %s\n", i + 1, deck->cards[i].actual_value, deck->cards[i].value, deck->cards[i].suit);
         } else {
-            printf("Card %d value/suit: %c / %s\n", i + 1, deck->cards[i].value, deck->cards[i].suit);
+            printf("Card %d actual-value/value/suit: %d / %c / %s\n", i + 1, deck->cards[i].actual_value, deck->cards[i].value, deck->cards[i].suit);
         }
         //printf("Card state: %d\n", deck->cards[i].state);
     }
