@@ -62,7 +62,7 @@ void simulate_game(Deck *deck_player1, Deck *deck_player2);
 
 int main() {
   	Deck deck; // the initial deck
-  	Deck deck_player, deck_bot;
+  	Deck deck_player1, deck_player2;
 	Table *table;
 
   	// seed random generator for shuffling
@@ -75,18 +75,18 @@ int main() {
   	shuffle_deck(&deck);
 
   	// split deck between players
-  	split_deck(&deck, &deck_player, &deck_bot);
+  	split_deck(&deck, &deck_player1, &deck_player2);
 	
-	// initialize table for turn/play handling
+	// initialize table for turn/play handling in player vs player
 	// table = init_table();
 
   	// for testing
   	print_deck(&deck);
-  	// print_deck(&deck_player);
-  	// print_deck(&deck_bot);
+  	// print_deck(&deck_player1);
+  	// print_deck(&deck_player2);
 
   	// GAME LOOP
-	// simulate_game(&deck_player, &deck_bot);
+	// simulate_game(&deck_player1, &deck_player2);
 
   return 0;
 }
@@ -146,18 +146,18 @@ void shuffle_deck(Deck *deck) {
   }
 }
 
-void split_deck(Deck *deck, Deck *deck_player, Deck *deck_bot) {
+void split_deck(Deck *deck, Deck *deck_player1, Deck *deck_player2) {
   	// don't allow empty cells in each player's deck
   	for (int i = 0; i < 52; i++) {
-    	deck_player->cards[i] = EMPTY_CARD;
-    	deck_bot->cards[i] = EMPTY_CARD;
+    	deck_player1->cards[i] = EMPTY_CARD;
+    	deck_player2->cards[i] = EMPTY_CARD;
   }
 
   	// add coresponding cards to players
   	const int split_offset = DECK_SIZE / 2;
   	for (int j = 0; j < (DECK_SIZE / 2); j++) {
-    	deck_player->cards[j] = deck->cards[j];
-    	deck_bot->cards[j] = deck->cards[j + split_offset];
+    	deck_player1->cards[j] = deck->cards[j];
+    	deck_player2->cards[j] = deck->cards[j + split_offset];
   	}
 }
 
@@ -197,12 +197,12 @@ void simulate_game(Deck *deck_player1, Deck *deck_player2) {		// FIX: FINISH GAM
 			deck_player1->cards[empty_idx] = deck_player2->cards[0];
 			deck_player1->cards[empty_idx + 1] = deck_player1->cards[0];
 
-			// shift the decks over by one ( + need to set the last card to be empty)
+			// shift the decks over by one, skipping the last one (the last one needs to be set to be empty)
 			for (int i = 0; i < 51; i++) {
 				deck_player1->cards[i] = deck_player1->cards[i + 1];
 				deck_player2->cards[i] = deck_player2->cards[i + 1];
 			}
-			// FIX: need to add check for the last card not being empty (after a player wins the whole game
+			// FIX: need to add check for the last card not being empty (after a player wins the whole game) - maybe not necessary
 			deck_player1->cards[DECK_SIZE - 1] = EMPTY_CARD;
 			deck_player2->cards[DECK_SIZE - 1] = EMPTY_CARD;
 
@@ -214,6 +214,21 @@ void simulate_game(Deck *deck_player1, Deck *deck_player2) {		// FIX: FINISH GAM
 					break;
 				}
 			}
+
+			// insert the card won to the winners deck and add the card played to the end of the deck
+			deck_player2->cards[empty_idx] = deck_player1->cards[0];
+			deck_player2->cards[empty_idx + 1] = deck_player2->cards[0];
+
+			// shift the decks over by one ( + need to set the last card to be empty)
+			for (int i = 0; i < 51; i++) {
+				deck_player1->cards[i] = deck_player1->cards[i + 1];
+				deck_player2->cards[i] = deck_player2->cards[i + 1];
+			}
+			// FIX: need to add check for the last card not being empty (after a player wins the whole game) - maybe not necessary
+			deck_player1->cards[DECK_SIZE - 1] = EMPTY_CARD;
+			deck_player2->cards[DECK_SIZE - 1] = EMPTY_CARD;
+
+
 
 			// insert the card won to the winners deck and add the card played to the end of the deck
 			deck_player2->cards[empty_idx] = deck_player1->cards[0];
